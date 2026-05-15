@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-surface-50 text-slate-900 dark:bg-surface-950 dark:text-slate-100 min-h-screen font-sans text-[15px] leading-relaxed;
+  }
+  ::selection {
+    @apply bg-brand-500/25 text-brand-900 dark:text-white;
+  }
+}
+
+/* Premium scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(129, 140, 248, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+*::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-brand-500/30 hover:bg-brand-500/50 transition-colors;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/75 dark:bg-slate-900/55 backdrop-blur-2xl border border-white/50 dark:border-slate-700/50 shadow-glass;
+  }
+  .glass-card {
+    @apply rounded-2xl glass shadow-card;
+  }
+  .glass-strong {
+    @apply bg-white/90 dark:bg-slate-900/75 backdrop-blur-2xl border border-slate-200/60 dark:border-slate-700/60;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-violet-600 to-cyan-500 dark:from-brand-400 dark:via-violet-400 dark:to-cyan-400;
+  }
+  .ring-gradient {
+    @apply relative before:absolute before:inset-0 before:rounded-[inherit] before:p-[1px] before:bg-gradient-to-br before:from-brand-500/50 before:via-cyan-500/30 before:to-violet-500/50 before:-z-10;
+  }
+  .shimmer-bg {
+    background: linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.08) 25%,
+      rgba(99, 102, 241, 0.12) 50%,
+      rgba(148, 163, 184, 0.08) 75%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+}
