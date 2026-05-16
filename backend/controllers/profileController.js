@@ -1,56 +1,36 @@
-import User from '../models/User.js';
-import Employee from '../models/Employee.js';
-import { asyncHandler } from '../utils/asyncHandler.js';
+import multer from 'multer';
 
-/**
- * PATCH /api/profile/avatar
- * multipart/form-data
- * field name: image
- */
-export const updateAvatar = asyncHandler(async (req, res) => {
-  // Check file exists
-  if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      message: 'Image file is required',
-    });
-  }
+// Store files in memory
+const storage = multer.memoryStorage();
 
-  // Convert image buffer to base64
-  const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+// Validate image files
+const fileFilter = (_req, file, cb) => {
+  const allowed = /jpeg|jpg|png|gif|webp/i;
 
-  // Find user
-  const user = await User.findById(req.user.id);
+  const ext = file.originalname
+    .split('.')
+    .pop()
+    ?.toLowerCase();
 
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: 'User not found',
-    });
-  }
+  const isValid =
+    allowed.test(ext || '') &&
+    allowed.test(file.mimetype);
 
-  // Save image directly in database
-  user.avatar = base64Image;
-
-  await user.save();
-
-  // Update employee profile image
-  if (user.employee) {
-    await Employee.updateOne(
-      { _id: user.employee },
-      {
-        $set: {
-          profileImage: base64Image,
-        },
-      }
+  if (isValid) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        'Only image files (jpeg, jpg, png, gif, webp) are allowed'
+      )
     );
   }
+};
 
-  res.json({
-    success: true,
-    message: 'Profile image updated successfully',
-    data: {
-      avatar: user.avatar,
-    },
-  });
+export const uploadProfileImage = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter,
 });
