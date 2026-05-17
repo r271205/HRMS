@@ -1,7 +1,7 @@
 /** Resolve uploaded image URL for <img src> */
 export function mediaUrl(path) {
   if (!path) return '';
-  if (path.startsWith('http')) return path;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
   const base = import.meta.env.VITE_API_URL || '';
   return `${base}${path}`;
 }

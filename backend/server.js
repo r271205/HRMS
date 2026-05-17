@@ -42,7 +42,16 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Root Route
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+    res.status(503).json({ success: false, message: 'Database unavailable' });
+  }
+});
+
 app.get('/', (_req, res) => {
   res.json({
     success: true,
@@ -50,7 +59,6 @@ app.get('/', (_req, res) => {
   });
 });
 
-// Health Check Route
 app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
@@ -59,7 +67,6 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -67,16 +74,17 @@ app.use('/api/leaves', leaveRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profile', profileRoutes);
 
-// 404 Middleware
 app.use(notFound);
-
-// Error Middleware
 app.use(errorHandler);
+
+export default app;
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+if (!process.env.VERCEL) {
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
   });
-});
+}

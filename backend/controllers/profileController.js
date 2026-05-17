@@ -1,36 +1,32 @@
-import multer from 'multer';
+import User from '../models/User.js';
+import Employee from '../models/Employee.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
-// Store files in memory
-const storage = multer.memoryStorage();
-
-// Validate image files
-const fileFilter = (_req, file, cb) => {
-  const allowed = /jpeg|jpg|png|gif|webp/i;
-
-  const ext = file.originalname
-    .split('.')
-    .pop()
-    ?.toLowerCase();
-
-  const isValid =
-    allowed.test(ext || '') &&
-    allowed.test(file.mimetype);
-
-  if (isValid) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(
-        'Only image files (jpeg, jpg, png, gif, webp) are allowed'
-      )
-    );
+/**
+ * PATCH /api/profile/avatar — store image in MongoDB (works on Vercel; no disk writes).
+ */
+export const updateAvatar = asyncHandler(async (req, res) => {
+  if (!req.file?.buffer) {
+    return res.status(400).json({ success: false, message: 'No image file provided' });
   }
-};
 
-export const uploadProfileImage = multer({
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024,
-  },
-  fileFilter,
+  const mime = req.file.mimetype || 'image/jpeg';
+  const dataUrl = `data:${mime};base64,${req.file.buffer.toString('base64')}`;
+
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  user.avatar = dataUrl;
+  await user.save();
+
+  if (user.employee) {
+    await Employee.findByIdAndUpdate(user.employee, { profileImage: dataUrl });
+  }
+
+  res.json({
+    success: true,
+    data: { avatar: dataUrl },
+  });
 });
